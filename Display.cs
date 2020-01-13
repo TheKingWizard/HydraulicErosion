@@ -38,7 +38,7 @@ public class Display : MonoBehaviour
         //GL.PushMatrix();
         lineMat.SetPass(0);
         //GL.LoadOrtho();
-        foreach (List<System.Numerics.Vector3> path in terrain.paths)
+        /*foreach (List<System.Numerics.Vector3> path in terrain.paths)
         {
             GL.Begin(GL.LINE_STRIP);
             GL.Color(Color.green);
@@ -48,7 +48,7 @@ public class Display : MonoBehaviour
                 GL.Color(Color.red);
             }
             GL.End();
-        }
+        }*/
         
 
         //GL.PopMatrix();
@@ -64,9 +64,9 @@ public class Display : MonoBehaviour
         List<Color> colors = new List<Color>();
         foreach (Triangle triangle in terrain.triangles)
         {
-            Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.elevationMapping[triangle.A]);
-            Vector3 b = new Vector3(triangle.B.X, triangle.B.Y, -terrain.elevationMapping[triangle.B]);
-            Vector3 c = new Vector3(triangle.C.X, triangle.C.Y, -terrain.elevationMapping[triangle.C]);
+            Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.regions[triangle.A].Elevation);
+            Vector3 b = new Vector3(triangle.B.X, triangle.B.Y, -terrain.regions[triangle.B].Elevation);
+            Vector3 c = new Vector3(triangle.C.X, triangle.C.Y, -terrain.regions[triangle.C].Elevation);
 
             Vector3 s1 = a - c;
             Vector3 s2 = b - c;
