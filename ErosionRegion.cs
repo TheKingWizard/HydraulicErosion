@@ -15,18 +15,6 @@ public class ErosionRegion
     }
     public List<ErosionRegion> AdjacentRegions { get; set; } = new List<ErosionRegion>();
 
-    public float Elevation 
-    { 
-        get
-        {
-            return Region.GeographicalProperties.Elevation;
-        }
-        set
-        {
-            Region.GeographicalProperties.Elevation = value;
-        } 
-    }
-
     public Region Region { get; }
 
     public Dictionary<ErosionRegion, float> ErosionWeights
@@ -45,6 +33,12 @@ public class ErosionRegion
     public ErosionRegion(Region region)
     {
         Region = region;
+        elevation = region.GeographicalProperties.Elevation;
+    }
+
+    public void SyncElevation()
+    {
+        Region.GeographicalProperties.Elevation = elevation;
     }
 
     Dictionary<ErosionRegion, float> GetNodeErosionWeights()

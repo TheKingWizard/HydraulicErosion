@@ -8,12 +8,11 @@ public class Region
     public List<Triangle> Triangles { get; }
     //public Biome Biome { get; set; }
 
-    public GeographicalProperties GeographicalProperties { get; set; }
+    public GeographicalProperties GeographicalProperties { get; set; } = new GeographicalProperties(0);
 
     public Region(Vector3 center, List<Triangle> triangles)
     {
         Center = center;
         Triangles = triangles;
-        GeographicalProperties = new GeographicalProperties(0);
     }
 }

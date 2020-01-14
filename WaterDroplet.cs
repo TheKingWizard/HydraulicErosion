@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
 
 public class WaterDroplet
 {
@@ -12,11 +15,15 @@ public class WaterDroplet
     private static readonly float deposition = 0.01f;
     private static readonly float minErosion = 0.01f;
 
+    private readonly Random random;
+
     private ErosionRegion position;
-    private Vector3 direction = Vector3.Normalize(new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f), 0));
+    private Vector3 direction;
     private float velocity = 1;
     private float volume = 1;
     private float sediment = 0;
+
+    
 
     private bool IsAlive
     {
@@ -32,14 +39,16 @@ public class WaterDroplet
     public WaterDroplet(ErosionRegion region)
     {
         position = region;
+        random = new Random((int)(position.Center.X * position.Center.Y));
+        direction = Vector3.Normalize(new Vector3((float)(random.NextDouble() * 2 - 1), (float)(random.NextDouble() * 2 - 1), 0));
     }
 
-    public void Simulate()
+    public async void Simulate()
     {
         for (int i = 0; i < lifetime; i++)
         {
             if(IsAlive)
-                SimulationStep();
+                await Task.Run(new Action(SimulationStep));
             else
                 break;
         }
@@ -52,10 +61,10 @@ public class WaterDroplet
 
         ErosionRegion newPosition = FindNextLocation(newDirection);
 
-        float heightDiff = newPosition.Elevation - position.Elevation;
+        float heightDiff = newPosition.elevation - position.elevation;
         SimulateHydraulicAction(heightDiff);
 
-        float newVelocity = (float)System.Math.Sqrt(System.Math.Pow(velocity, 2) - heightDiff * gravity);
+        float newVelocity = (float)Math.Sqrt(Math.Pow(velocity, 2) - heightDiff * gravity);
         float newVolume = volume * (1 - evaporation);
 
         UpdateValues(newPosition, newDirection, newVelocity, newVolume);
@@ -68,17 +77,17 @@ public class WaterDroplet
         bool inPit = true;
         foreach (ErosionRegion adjacentNode in region.AdjacentRegions)
         {
-            float heightDiff = adjacentNode.Elevation - position.Elevation;
+            float heightDiff = adjacentNode.elevation - position.elevation;
             heightDiffs.Add(Vector3.Normalize(adjacentNode.Center - position.Center), heightDiff);
-            totalHeightDiff += System.Math.Abs(heightDiff);
+            totalHeightDiff += Math.Abs(heightDiff);
             if (heightDiff < 0)
                 inPit = false;
         }
         Vector3 gradient = new Vector3(0, 0, 0);
         if (totalHeightDiff == 0)
         {
-            gradient.X = UnityEngine.Random.value * 2 - 1;
-            gradient.Y = UnityEngine.Random.value * 2 - 1;
+            gradient.X = (float)(random.NextDouble() * 2 - 1);
+            gradient.Y = (float)(random.NextDouble() * 2 - 1);
             gradient = Vector3.Normalize(gradient) * 0.5f * inertia / (1 - inertia);
             return gradient;
         }
@@ -94,15 +103,15 @@ public class WaterDroplet
             }
             if (gradient == Vector3.Zero)
             {
-                gradient.X = UnityEngine.Random.value * 2 - 1;
-                gradient.Y = UnityEngine.Random.value * 2 - 1;
+                gradient.X = (float)(random.NextDouble() * 2 - 1);
+                gradient.Y = (float)(random.NextDouble() * 2 - 1);
                 gradient = Vector3.Normalize(gradient) * inertia / (1 - inertia);
                 return gradient;
             }
             gradient = Vector3.Normalize(gradient);
-            if (UnityEngine.Random.value > 0.5)
+            if (random.NextDouble() > 0.5)
             {
-                Vector3 jitter = new Vector3(UnityEngine.Random.Range(-0.5f, 0.5f), UnityEngine.Random.Range(-0.5f, 0.5f), 0);
+                Vector3 jitter = new Vector3((float)(random.NextDouble() - 0.5), (float)(random.NextDouble() - 0.5), 0);
                 jitter = Vector3.Normalize(jitter);
                 gradient = Vector3.Normalize(gradient + 0.5f * jitter);
             }
@@ -114,7 +123,7 @@ public class WaterDroplet
 
     private ErosionRegion FindNextLocation(Vector3 newDirection)
     {
-        ErosionRegion newPosition = new ErosionRegion(null);
+        ErosionRegion newPosition = new ErosionRegion(new Region(new Vector3(), null));
         float maxCosTheta = float.MinValue;
         foreach (ErosionRegion adjacentRegion in position.AdjacentRegions)
         {
@@ -146,7 +155,7 @@ public class WaterDroplet
     {
         float deposit = (heightDiff > 0) ? System.Math.Min(heightDiff, sediment) : (sediment - dropSedimentCapacity) * deposition;
         sediment -= deposit;
-        position.Elevation += deposit;
+        Interlocked.Exchange(ref position.elevation, position.elevation + deposit);
     }
 
     private void Erode(float dropSedimentCapacity, float heightDiff)
@@ -157,11 +166,9 @@ public class WaterDroplet
             ErosionRegion location = kvp.Key;
             float weight = kvp.Value;
 
-            location.Elevation -= erosit * weight;
+            Interlocked.Exchange(ref location.elevation, location.elevation - erosit * weight);
         }
         sediment += erosit;
-
-        
     }
 
     private void UpdateValues(ErosionRegion newPosition, Vector3 newDirection, float newVelocity, float newVolume)

@@ -64,9 +64,9 @@ public class Display : MonoBehaviour
         List<Color> colors = new List<Color>();
         foreach (Triangle triangle in terrain.triangles)
         {
-            Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.regions[triangle.A].Elevation);
-            Vector3 b = new Vector3(triangle.B.X, triangle.B.Y, -terrain.regions[triangle.B].Elevation);
-            Vector3 c = new Vector3(triangle.C.X, triangle.C.Y, -terrain.regions[triangle.C].Elevation);
+            Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.regions[triangle.A].elevation);
+            Vector3 b = new Vector3(triangle.B.X, triangle.B.Y, -terrain.regions[triangle.B].elevation);
+            Vector3 c = new Vector3(triangle.C.X, triangle.C.Y, -terrain.regions[triangle.C].elevation);
 
             Vector3 s1 = a - c;
             Vector3 s2 = b - c;

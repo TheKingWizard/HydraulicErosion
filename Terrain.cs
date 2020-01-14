@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class Terrain
 {
@@ -135,16 +136,34 @@ public class Terrain
         noise.SetParameters(8, 0.75f, 0.25f, 1f, 2f);
         foreach (ErosionRegion region in regions.Values)
         {
-            region.Elevation = (noise.Evaluate(region.Center) + 1f) / 2f;
+            region.elevation = (noise.Evaluate(region.Center) + 1f) / 2f;
         }
     }
 
     private void SimulateErosion(int numIterations)
     {
-        for (int i = 0; i < numIterations; i++)
+        Parallel.For(0, numIterations, (i) =>
         {
-            WaterDroplet waterDroplet = new WaterDroplet(regions.ElementAt(UnityEngine.Random.Range(0, regions.Count)).Value);
+            System.Random random = new System.Random(i);
+            WaterDroplet waterDroplet = new WaterDroplet(regions.ElementAt(random.Next(regions.Count)).Value);
             waterDroplet.Simulate();
+        });
+
+        /*for (int i = 0; i < numIterations; i++)
+        {
+            System.Random random = new System.Random(i);
+            WaterDroplet waterDroplet = new WaterDroplet(regions.ElementAt(random.Next(regions.Count)).Value);
+            waterDroplet.Simulate();
+        }*/
+     
+        SyncElevation();
+    }
+
+    private void SyncElevation()
+    {
+        foreach (ErosionRegion region in regions.Values)
+        {
+            region.SyncElevation();
         }
     }
 }
