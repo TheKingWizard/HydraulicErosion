@@ -4,7 +4,6 @@ using System.Numerics;
 public class WaterDroplet
 {
     private static readonly int lifetime = 50;
-    private static readonly int erosionRadius = 2;
     private static readonly float inertia = 0.1f;
     private static readonly float gravity = 4.0f;
     private static readonly float evaporation = 0.05f;
@@ -153,7 +152,7 @@ public class WaterDroplet
     private void Erode(float dropSedimentCapacity, float heightDiff)
     {
         float erosit = System.Math.Min((dropSedimentCapacity - sediment) * erosion, -heightDiff);
-        foreach (KeyValuePair<ErosionRegion, float> kvp in GetNodeErosionWeights(position))
+        foreach (KeyValuePair<ErosionRegion, float> kvp in position.ErosionWeights)
         {
             ErosionRegion location = kvp.Key;
             float weight = kvp.Value;
@@ -162,67 +161,7 @@ public class WaterDroplet
         }
         sediment += erosit;
 
-        Dictionary<ErosionRegion, float> GetNodeErosionWeights(ErosionRegion centerRegion)
-        {
-            HashSet<ErosionRegion> nodes = GetNodesWithinRadius(centerRegion);
-
-            Dictionary<ErosionRegion, float> weights = new Dictionary<ErosionRegion, float>();
-            float totalWeight = 0;
-            float minDist = float.MaxValue;
-            float maxDist = float.MinValue;
-            float totalDist = 0;
-            foreach (ErosionRegion node in nodes)
-            {
-                if (node == centerRegion)
-                    continue;
-                float distance = Vector3.Distance(node.Center, centerRegion.Center);
-                maxDist = System.Math.Max(distance, maxDist);
-                minDist = System.Math.Min(distance, minDist);
-                totalDist += distance;
-            }
-            float sigma = maxDist / 3;
-            foreach (ErosionRegion node in nodes)
-            {
-                float distance = Vector3.Distance(node.Center, centerRegion.Center);
-                float weight = (float)(1 / (System.Math.Sqrt(2 * System.Math.PI) * sigma) * System.Math.Exp(-(System.Math.Pow(distance, 2) / (2 * System.Math.Pow(sigma, 2)))));
-                weights.Add(node, weight);
-                totalWeight += weight;
-            }
-
-            foreach (ErosionRegion node in nodes)
-            {
-                weights[node] /= totalWeight;
-            }
-
-            return weights;
-
-            HashSet<ErosionRegion> GetNodesWithinRadius(ErosionRegion centerNode)
-            {
-                HashSet<ErosionRegion> seenNodes = new HashSet<ErosionRegion>();
-                seenNodes.Add(centerNode);
-                List<ErosionRegion> nodesToVisit = new List<ErosionRegion>();
-                nodesToVisit.Add(centerNode);
-
-                for (int i = 0; i < erosionRadius; i++)
-                {
-                    List<ErosionRegion> nextNodesToVisit = new List<ErosionRegion>();
-                    foreach (ErosionRegion node in nodesToVisit)
-                    {
-                        foreach (ErosionRegion adjacentNode in node.AdjacentRegions)
-                        {
-                            if (!seenNodes.Contains(adjacentNode))
-                            {
-                                seenNodes.Add(adjacentNode);
-                                nextNodesToVisit.Add(adjacentNode);
-                            }
-                        }
-                    }
-                    nodesToVisit = nextNodesToVisit;
-                }
-
-                return seenNodes;
-            }
-        }
+        
     }
 
     private void UpdateValues(ErosionRegion newPosition, Vector3 newDirection, float newVelocity, float newVolume)
