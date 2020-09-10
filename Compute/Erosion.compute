@@ -1,0 +1,103 @@
+﻿#pragma kernel CSMain
+
+int lifetime;
+float inertia;
+float gravity;
+float evaporation;
+float capacity;
+float erosion;
+float deposition;
+float minErosion;
+
+struct Region
+{
+    float3 position;
+    float elevation;
+    
+    int numAdjRegions;
+    int adjacentRegions[6];
+};
+
+StructuredBuffer<int> random;
+RWStructuredBuffer<Region> regions;
+
+float3 GetGradient(Region region) {
+    
+    float totalHeightDiff = 0;
+    for (int i = 0; i < region.numAdjRegions; i++)
+    {
+        Region adjacentRegion = regions[region.adjacentRegions[i]];
+        totalHeightDiff += abs(adjacentRegion.elevation - region.elevation);
+    }
+
+    float3 gradient = { 0, 0, 0 };
+    for (int i = 0; i < region.numAdjRegions; i++)
+    {
+        Region adjacentRegion = regions[region.adjacentRegions[i]];
+        float heightDiff = adjacentRegion.elevation - region.elevation;
+        float3 direction = normalize(adjacentRegion.position - region.position);
+        gradient += direction * heightDiff / totalHeightDiff;
+    }
+
+    if (length(gradient) == 0 || totalHeightDiff == 0)
+        return float3(0, 0, 0);
+
+    return normalize(gradient);
+}
+
+int FindNextLocation(int regionIndex, float3 newDirection) {
+    
+    Region region = regions[regionIndex];
+    int newRegionIndex = regionIndex;
+    float maxCosTheta = -1;
+    for (int i = 0; i < region.numAdjRegions; i++) {
+        int adjacentRegionIndex = region.adjacentRegions[i];
+        Region adjacentRegion = regions[adjacentRegionIndex];
+        float3 direction = adjacentRegion.position - region.position;
+        direction = normalize(direction);
+        float cosTheta = dot(direction, newDirection);
+        if (cosTheta > maxCosTheta) {
+            maxCosTheta = cosTheta;
+            newRegionIndex = adjacentRegionIndex;
+        }
+    }
+    return newRegionIndex;
+}
+
+[numthreads(1024,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int regionIndex = random[id.x];
+    float3 direction = -GetGradient(regions[regionIndex]);
+    float velocity = 1;
+    float volume = 1;
+    float sediment = 0;
+
+    for (int i = 0; i < lifetime; i++)
+    {
+        float3 gradient = GetGradient(regions[regionIndex]);
+        float3 newDirection = normalize(direction * inertia - gradient * (1 - inertia));
+
+        int newPositionIndex = FindNextLocation(regionIndex, newDirection);
+
+        float heightDiff = regions[newPositionIndex].elevation - regions[regionIndex].elevation;
+        float dropSedimentCapacity = max(-heightDiff * velocity * volume * capacity, minErosion);
+        if ((sediment > dropSedimentCapacity) || (heightDiff >= 0))
+        {
+            float deposit = (heightDiff > 0) ? min(heightDiff, sediment) : (sediment - dropSedimentCapacity) * deposition;
+            sediment -= deposit;
+            regions[regionIndex].elevation += deposit;
+        }
+        else
+        {
+            float erosit = min((dropSedimentCapacity - sediment) * erosion, -heightDiff);
+            regions[regionIndex].elevation -= erosit;
+            sediment += erosit;
+        }
+
+        regionIndex = newPositionIndex;
+        direction = newDirection;
+        velocity = sqrt(max(0, velocity * velocity + heightDiff * gravity));
+        volume = volume * (1 - evaporation);
+    }
+}

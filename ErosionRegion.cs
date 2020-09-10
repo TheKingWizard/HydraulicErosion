@@ -1,10 +1,30 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 
 public class ErosionRegion
 {
+    private readonly object Lock = new object();
+    private static readonly int erosionRadius = 2;
 
-    private static readonly int erosionRadius = 0;
+    public float Elevation
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return Region.GeographicalProperties.Elevation;
+            }
+        }
+
+        set
+        {
+            lock (Lock)
+            {
+                Region.GeographicalProperties.Elevation = value;
+            }
+        }
+    }
 
     public Vector3 Center 
     {
@@ -33,12 +53,7 @@ public class ErosionRegion
     public ErosionRegion(Region region)
     {
         Region = region;
-        elevation = region.GeographicalProperties.Elevation;
-    }
-
-    public void SyncElevation()
-    {
-        Region.GeographicalProperties.Elevation = elevation;
+        Elevation = region.GeographicalProperties.Elevation;
     }
 
     Dictionary<ErosionRegion, float> GetNodeErosionWeights()

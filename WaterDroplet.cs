@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
 using System;
 
 public class WaterDroplet
 {
     private static readonly int lifetime = 50;
-    private static readonly float inertia = 0.1f;
+    private static readonly float inertia = 0.5f;
     private static readonly float gravity = 4.0f;
     private static readonly float evaporation = 0.05f;
     private static readonly float capacity = 2.0f;
@@ -23,19 +21,6 @@ public class WaterDroplet
     private float volume = 1;
     private float sediment = 0;
 
-    
-
-    private bool IsAlive
-    {
-        get 
-        {
-            if (float.IsNaN(velocity))
-                return false;
-            else
-                return true;
-        }
-    }
-
     public WaterDroplet(ErosionRegion region)
     {
         position = region;
@@ -43,14 +28,11 @@ public class WaterDroplet
         direction = Vector3.Normalize(new Vector3((float)(random.NextDouble() * 2 - 1), (float)(random.NextDouble() * 2 - 1), 0));
     }
 
-    public async void Simulate()
+    public void Simulate()
     {
         for (int i = 0; i < lifetime; i++)
         {
-            if(IsAlive)
-                await Task.Run(new Action(SimulationStep));
-            else
-                break;
+            SimulationStep();
         }
     }
 
@@ -61,10 +43,10 @@ public class WaterDroplet
 
         ErosionRegion newPosition = FindNextLocation(newDirection);
 
-        float heightDiff = newPosition.elevation - position.elevation;
+        float heightDiff = newPosition.Elevation - position.Elevation;
         SimulateHydraulicAction(heightDiff);
 
-        float newVelocity = (float)Math.Sqrt(Math.Pow(velocity, 2) - heightDiff * gravity);
+        float newVelocity = (float)Math.Sqrt(Math.Max(0, Math.Pow(velocity, 2) - heightDiff * gravity));
         float newVolume = volume * (1 - evaporation);
 
         UpdateValues(newPosition, newDirection, newVelocity, newVolume);
@@ -74,56 +56,34 @@ public class WaterDroplet
     {
         Dictionary<Vector3, float> heightDiffs = new Dictionary<Vector3, float>();
         float totalHeightDiff = 0;
-        bool inPit = true;
+
         foreach (ErosionRegion adjacentNode in region.AdjacentRegions)
         {
-            float heightDiff = adjacentNode.elevation - position.elevation;
+            float heightDiff = adjacentNode.Elevation - position.Elevation;
             heightDiffs.Add(Vector3.Normalize(adjacentNode.Center - position.Center), heightDiff);
             totalHeightDiff += Math.Abs(heightDiff);
-            if (heightDiff < 0)
-                inPit = false;
         }
+
         Vector3 gradient = new Vector3(0, 0, 0);
-        if (totalHeightDiff == 0)
+        foreach (Vector3 direction in heightDiffs.Keys)
+        {
+            gradient += direction * heightDiffs[direction] / totalHeightDiff;
+        }
+
+        if (gradient == Vector3.Zero || totalHeightDiff == 0)
         {
             gradient.X = (float)(random.NextDouble() * 2 - 1);
             gradient.Y = (float)(random.NextDouble() * 2 - 1);
-            gradient = Vector3.Normalize(gradient) * 0.5f * inertia / (1 - inertia);
+            gradient = Vector3.Normalize(gradient) * inertia / (1 - inertia);
             return gradient;
         }
-        else if (inPit)
-        {
-            return gradient;
-        }
-        else
-        {
-            foreach (Vector3 direction in heightDiffs.Keys)
-            {
-                gradient += direction * heightDiffs[direction] / totalHeightDiff;
-            }
-            if (gradient == Vector3.Zero)
-            {
-                gradient.X = (float)(random.NextDouble() * 2 - 1);
-                gradient.Y = (float)(random.NextDouble() * 2 - 1);
-                gradient = Vector3.Normalize(gradient) * inertia / (1 - inertia);
-                return gradient;
-            }
-            gradient = Vector3.Normalize(gradient);
-            if (random.NextDouble() > 0.5)
-            {
-                Vector3 jitter = new Vector3((float)(random.NextDouble() - 0.5), (float)(random.NextDouble() - 0.5), 0);
-                jitter = Vector3.Normalize(jitter);
-                gradient = Vector3.Normalize(gradient + 0.5f * jitter);
-            }
 
-        }
-
-        return gradient;
+        return Vector3.Normalize(gradient);
     }
 
     private ErosionRegion FindNextLocation(Vector3 newDirection)
     {
-        ErosionRegion newPosition = new ErosionRegion(new Region(new Vector3(), null));
+        ErosionRegion newPosition = position;
         float maxCosTheta = float.MinValue;
         foreach (ErosionRegion adjacentRegion in position.AdjacentRegions)
         {
@@ -140,8 +100,8 @@ public class WaterDroplet
 
     private void SimulateHydraulicAction(float heightDiff)
     {
-        float dropSedimentCapacity = System.Math.Max(-heightDiff * velocity * volume * capacity, minErosion);
-        if (sediment > dropSedimentCapacity || heightDiff > 0)
+        float dropSedimentCapacity = Math.Max(-heightDiff * velocity * volume * capacity, minErosion);
+        if (sediment > dropSedimentCapacity || heightDiff >= 0)
         {
             Deposit(dropSedimentCapacity, heightDiff);
         }
@@ -153,20 +113,19 @@ public class WaterDroplet
 
     private void Deposit(float dropSedimentCapacity, float heightDiff)
     {
-        float deposit = (heightDiff > 0) ? System.Math.Min(heightDiff, sediment) : (sediment - dropSedimentCapacity) * deposition;
+        float deposit = (heightDiff > 0) ? Math.Min(heightDiff, sediment) : (sediment - dropSedimentCapacity) * deposition;
         sediment -= deposit;
-        Interlocked.Exchange(ref position.elevation, position.elevation + deposit);
+        position.Elevation += deposit;
     }
 
     private void Erode(float dropSedimentCapacity, float heightDiff)
     {
-        float erosit = System.Math.Min((dropSedimentCapacity - sediment) * erosion, -heightDiff);
+        float erosit = Math.Min((dropSedimentCapacity - sediment) * erosion, -heightDiff);
         foreach (KeyValuePair<ErosionRegion, float> kvp in position.ErosionWeights)
         {
             ErosionRegion location = kvp.Key;
             float weight = kvp.Value;
-
-            Interlocked.Exchange(ref location.elevation, location.elevation - erosit * weight);
+            location.Elevation -= erosit * weight;
         }
         sediment += erosit;
     }
