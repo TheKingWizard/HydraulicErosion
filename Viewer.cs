@@ -9,7 +9,7 @@ public class Viewer : MonoBehaviour
     private float r = 5.0f;
     private float x = 0;
     private float y = 0;
-    private float z = -5;
+    private float z = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -17,9 +17,29 @@ public class Viewer : MonoBehaviour
 
     }
 
+    Vector3 dragOrigin;
+    bool dragging = false;
+    float dragSpeed = 0.05f;
     // Update is called once per frame
     void Update()
     {
+        if(Input.GetMouseButtonDown(0))
+            dragOrigin = Input.mousePosition;
+        if (Input.GetMouseButton(0))
+        {
+            dragging = true;
+        }
+        else
+        {
+            dragging = false;
+        }
+        if (dragging)
+        {
+            Vector3 delta = Input.mousePosition - dragOrigin;
+            theta -= delta.x * dragSpeed;
+            phi += delta.y * dragSpeed;
+            dragOrigin = Input.mousePosition;
+        }
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
             //theta += (Input.GetKey(KeyCode.LeftArrow)) ? -.05f : .05f;
@@ -35,17 +55,18 @@ public class Viewer : MonoBehaviour
         }
         if (Input.mouseScrollDelta.y != 0.0f)
         {
-            //r -= Input.mouseScrollDelta.y * 0.1f;
-            z += Input.mouseScrollDelta.y * 0.1f;
+            r -= Input.mouseScrollDelta.y * 0.1f;
+            //z += Input.mouseScrollDelta.y * 0.1f;
         }
         SetCameraLocation();
     }
 
     private void SetCameraLocation()
     {
-        //transform.position = PolarToCartesian(r, theta, phi);
-        //transform.LookAt(Vector3.zero);
-        transform.position = new Vector3(x, y, z);
+        transform.position = PolarToCartesian(r, theta, phi);
+        Vector3 offset = new Vector3(x, y, z);
+        transform.position += offset;
+        transform.LookAt(offset);
     }
 
     private Vector3 PolarToCartesian(float r, float theta, float phi)
