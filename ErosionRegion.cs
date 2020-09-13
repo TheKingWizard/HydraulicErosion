@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using System.Threading;
 
 public class ErosionRegion
 {
     private readonly object Lock = new object();
-    private static readonly int erosionRadius = 2;
+    private static int erosionRadius = 2;
+
+    public static void SetErosionRadius(int radius)
+    {
+        erosionRadius = radius;
+    }
 
     public float Elevation
     {

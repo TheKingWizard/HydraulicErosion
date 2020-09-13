@@ -4,7 +4,6 @@ using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System;
-using System.Runtime.InteropServices;
 
 public class Terrain
 {
@@ -30,7 +29,7 @@ public class Terrain
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
         //SimulateErosion(1024 * 64);
-        SimulateErosionComputeShader(1024 * 64);
+        //SimulateErosionComputeShader(1024 * 64);
         stopwatch.Stop();
         UnityEngine.Debug.Log("Time Elapsed: " + stopwatch.ElapsedMilliseconds);
 
@@ -196,7 +195,7 @@ public class Terrain
         }
     }
 
-    private void SimulateErosion(int numIterations)
+    public void SimulateErosion(int numIterations)
     {
         ErosionRegion[] values = regions.Values.ToArray();
         Parallel.For(0, numIterations, new ParallelOptions { MaxDegreeOfParallelism = 32 }, (i) =>
@@ -230,7 +229,7 @@ public class Terrain
         public int adjacentRegion6;
     };
 
-    private void SimulateErosionComputeShader(int numIterations)
+    public void SimulateErosionComputeShader(int numIterations)
     {
         int numThreads = numIterations / 1024;
         ErosionRegion[] values = regions.Values.ToArray();
