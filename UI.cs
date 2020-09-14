@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -26,8 +24,7 @@ public class UI : MonoBehaviour
 
     private void Simulate()
     {
-        Debug.Log("Simulating!");
-        WaterDroplet.SetWaterDropletSettings(ReadSettings());
+        WaterDroplet.Settings = ReadSettings();
         ErosionRegion.SetErosionRadius(root.Q<SliderInt>("erosionRadius").value);
 
         int numDrops = root.Q<SliderInt>("numDrops").value;
@@ -62,13 +59,13 @@ public class UI : MonoBehaviour
         return new WaterDropletSettings
         {
             lifetime = root.Q<SliderInt>("lifetime").value,
-            inertia = root.Q<Slider>("inertia").value,
+            inertia = root.Q<SliderInt>("inertia").value / 100f,
             gravity = root.Q<Slider>("gravity").value,
-            evaporation = root.Q<Slider>("evaporation").value,
+            evaporation = root.Q<SliderInt>("evaporation").value / 100f,
             capacity = root.Q<Slider>("capacity").value,
-            erosion = root.Q<Slider>("erosion").value,
-            deposition = root.Q<Slider>("deposition").value,
-            minErosion = root.Q<Slider>("minErosion").value
+            erosion = root.Q<SliderInt>("erosion").value / 100f,
+            deposition = root.Q<SliderInt>("deposition").value / 100f,
+            minErosion = root.Q<SliderInt>("minErosion").value / 100f
         };
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Viewer : MonoBehaviour
 {
@@ -11,18 +9,16 @@ public class Viewer : MonoBehaviour
     private float y = 0;
     private float z = 0;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
     Vector3 dragOrigin;
     bool dragging = false;
-    float dragSpeed = 0.05f;
-    // Update is called once per frame
+    private readonly float dragSpeed = 0.05f;
+    private readonly float moveSpeed = 0.01f;
+    private readonly float scrollSpeed = 0.1f;
+
     void Update()
     {
+        if (Input.GetKey(KeyCode.Escape))
+            Application.Quit();
         if(Input.GetMouseButtonDown(0))
             dragOrigin = Input.mousePosition;
         if (Input.GetMouseButton(0))
@@ -42,21 +38,18 @@ public class Viewer : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
-            //theta += (Input.GetKey(KeyCode.LeftArrow)) ? -.05f : .05f;
-            x += (Input.GetKey(KeyCode.LeftArrow)) ? -.05f : .05f;
+            x += (Input.GetKey(KeyCode.LeftArrow)) ? -moveSpeed : moveSpeed;
 
         }
         if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow))
         {
-            //phi += (Input.GetKey(KeyCode.UpArrow)) ? -.05f : .05f;
-            y -= (Input.GetKey(KeyCode.UpArrow)) ? -.05f : .05f;
+            y -= (Input.GetKey(KeyCode.UpArrow)) ? -moveSpeed : moveSpeed;
 
 
         }
         if (Input.mouseScrollDelta.y != 0.0f)
         {
-            r -= Input.mouseScrollDelta.y * 0.1f;
-            //z += Input.mouseScrollDelta.y * 0.1f;
+            r -= Input.mouseScrollDelta.y * scrollSpeed;
         }
         SetCameraLocation();
     }

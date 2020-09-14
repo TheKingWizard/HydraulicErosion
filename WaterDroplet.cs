@@ -4,7 +4,7 @@ using System;
 
 public class WaterDroplet
 {
-    private static WaterDropletSettings settings;
+    public static WaterDropletSettings Settings { get; set; }
 
     private readonly Random random;
 
@@ -16,19 +16,17 @@ public class WaterDroplet
 
     static WaterDroplet()
     {
-        settings.lifetime = 50;
-        settings.inertia = 0.5f;
-        settings.gravity = 4.0f;
-        settings.evaporation = 0.05f;
-        settings.capacity = 2.0f;
-        settings.erosion = 0.3f;
-        settings.deposition = 0.01f;
-        settings.minErosion = 0.01f;
-    }
-
-    public static void SetWaterDropletSettings(WaterDropletSettings settings)
-    {
-        WaterDroplet.settings = settings;
+        Settings = new WaterDropletSettings
+        {
+            lifetime = 50,
+            inertia = 0.5f,
+            gravity = 4.0f,
+            evaporation = 0.05f,
+            capacity = 2.0f,
+            erosion = 0.3f,
+            deposition = 0.01f,
+            minErosion = 0.01f,
+        };
     }
 
     public WaterDroplet(ErosionRegion region)
@@ -40,7 +38,7 @@ public class WaterDroplet
 
     public void Simulate()
     {
-        for (int i = 0; i < settings.lifetime; i++)
+        for (int i = 0; i < Settings.lifetime; i++)
         {
             SimulationStep();
         }
@@ -49,15 +47,15 @@ public class WaterDroplet
     private void SimulationStep()
     {
         Vector3 gradient = GetGradient(position);
-        Vector3 newDirection = Vector3.Normalize(direction * settings.inertia - gradient * (1f - settings.inertia));
+        Vector3 newDirection = Vector3.Normalize(direction * Settings.inertia - gradient * (1f - Settings.inertia));
 
         ErosionRegion newPosition = FindNextLocation(newDirection);
 
         float heightDiff = newPosition.Elevation - position.Elevation;
         SimulateHydraulicAction(heightDiff);
 
-        float newVelocity = (float)Math.Sqrt(Math.Max(0, Math.Pow(velocity, 2) - heightDiff * settings.gravity));
-        float newVolume = volume * (1 - settings.evaporation);
+        float newVelocity = (float)Math.Sqrt(Math.Max(0, Math.Pow(velocity, 2) - heightDiff * Settings.gravity));
+        float newVolume = volume * (1 - Settings.evaporation);
 
         UpdateValues(newPosition, newDirection, newVelocity, newVolume);
     }
@@ -84,7 +82,7 @@ public class WaterDroplet
         {
             gradient.X = (float)(random.NextDouble() * 2 - 1);
             gradient.Y = (float)(random.NextDouble() * 2 - 1);
-            gradient = Vector3.Normalize(gradient) * settings.inertia / (1 - settings.inertia);
+            gradient = Vector3.Normalize(gradient) * Settings.inertia / (1 - Settings.inertia);
             return gradient;
         }
 
@@ -110,7 +108,7 @@ public class WaterDroplet
 
     private void SimulateHydraulicAction(float heightDiff)
     {
-        float dropSedimentCapacity = Math.Max(-heightDiff * velocity * volume * settings.capacity, settings.minErosion);
+        float dropSedimentCapacity = Math.Max(-heightDiff * velocity * volume * Settings.capacity, Settings.minErosion);
         if (sediment > dropSedimentCapacity || heightDiff >= 0)
         {
             Deposit(dropSedimentCapacity, heightDiff);
@@ -123,14 +121,14 @@ public class WaterDroplet
 
     private void Deposit(float dropSedimentCapacity, float heightDiff)
     {
-        float deposit = (heightDiff > 0) ? Math.Min(heightDiff, sediment) : (sediment - dropSedimentCapacity) * settings.deposition;
+        float deposit = (heightDiff > 0) ? Math.Min(heightDiff, sediment) : (sediment - dropSedimentCapacity) * Settings.deposition;
         sediment -= deposit;
         position.Elevation += deposit;
     }
 
     private void Erode(float dropSedimentCapacity, float heightDiff)
     {
-        float erosit = Math.Min((dropSedimentCapacity - sediment) * settings.erosion, -heightDiff);
+        float erosit = Math.Min((dropSedimentCapacity - sediment) * Settings.erosion, -heightDiff);
         foreach (KeyValuePair<ErosionRegion, float> kvp in position.ErosionWeights)
         {
             ErosionRegion location = kvp.Key;

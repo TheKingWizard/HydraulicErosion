@@ -1,96 +1,93 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Display : MonoBehaviour
 {
+    public ComputeShader terrainEroder;
 
-    Terrain terrain;
+    TerrainCompute terrain;
     public Mesh mesh;
-    public Material material;
-    public Material lineMat;
+    public Material terrainMaterial;
 
-    // Start is called before the first frame update
     void Start()
     {
-        terrain = new Terrain();
-        mesh = GenerateMesh();
+        terrain = new TerrainCompute(terrainEroder);
     }
 
-    // Update is called once per frame
     void Update()
     {
         MaterialPropertyBlock block = new MaterialPropertyBlock();
         if (mesh != null)
-        {
-            Graphics.DrawMesh(mesh, Matrix4x4.identity, material, 0, Camera.main, 0, block, true, true);
-        }
+            Graphics.DrawMesh(mesh, Matrix4x4.identity, terrainMaterial, 0, Camera.main, 0, block, true, true);
     }
 
-    void OnPostRender()
+    public void Simulate(int numDrops, bool useGPU)
     {
-        /*if (!mat)
-        {
-            Debug.LogError("Please Assign a material on the inspector");
-            return;
-        }*/
-        //GL.LoadIdentity();
-        //GL.PushMatrix();
-        lineMat.SetPass(0);
-        //GL.LoadOrtho();
-        /*foreach (List<System.Numerics.Vector3> path in terrain.paths)
-        {
-            GL.Begin(GL.LINE_STRIP);
-            GL.Color(Color.green);
-            foreach (System.Numerics.Vector3 vector in path)
-            {
-                GL.Vertex(new Vector3(vector.X, vector.Y, -(terrain.elevationMapping[vector])));
-                GL.Color(Color.red);
-            }
-            GL.End();
-        }*/
-        
+        if (useGPU)
+            terrain.SimulateErosionComputeShader(numDrops);
+        else
+            terrain.SimulateErosion(numDrops);
 
-        //GL.PopMatrix();
+        GenerateMesh();
     }
 
     Mesh GenerateMesh()
     {
-        Mesh mesh = new Mesh();
-        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        mesh = new Mesh
+        {
+            indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
+        };
         List<Vector3> vertices = new List<Vector3>();
         List<int> indices = new List<int>();
         int index = 0;
+        Dictionary<Vector3, int> indexer = new Dictionary<Vector3, int>();
+        Dictionary<Vector3, HashSet<float>> test = new Dictionary<Vector3, HashSet<float>>();
         List<Color> colors = new List<Color>();
-        foreach (Triangle triangle in terrain.triangles)
+        List<Vector3> normals = new List<Vector3>();
+        foreach (Triangle triangle in Terrain.triangles)
         {
-            Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.regions[triangle.A].elevation);
-            Vector3 b = new Vector3(triangle.B.X, triangle.B.Y, -terrain.regions[triangle.B].elevation);
-            Vector3 c = new Vector3(triangle.C.X, triangle.C.Y, -terrain.regions[triangle.C].elevation);
+            Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.erosionRegions[triangle.A].Elevation);
+            Vector3 b = new Vector3(triangle.B.X, triangle.B.Y, -terrain.erosionRegions[triangle.B].Elevation);
+            Vector3 c = new Vector3(triangle.C.X, triangle.C.Y, -terrain.erosionRegions[triangle.C].Elevation);
 
             Vector3 s1 = a - c;
             Vector3 s2 = b - c;
             Vector3 n = Vector3.Cross(s1, s2).normalized;
             Vector3 z = new Vector3(0, 0, -1);
+            System.Numerics.Vector3 v = triangle.Circumcenter();
             float cosTheta = Vector3.Dot(n, z);
 
+            if (!indexer.ContainsKey(a))
+            {
+                indexer.Add(a, index);
+                vertices.Add(a);
+                index++;
+            }
+            if (!indexer.ContainsKey(b))
+            {
+                indexer.Add(b, index);
+                vertices.Add(b);
+                index++;
+            }
+            if (!indexer.ContainsKey(c))
+            {
+                indexer.Add(c, index);
+                vertices.Add(c);
+                index++;
+            }
             if (cosTheta > 0)
             {
-                vertices.Add(a);
-                vertices.Add(b);
-                vertices.Add(c);
+                indices.Add(indexer[a]);
+                indices.Add(indexer[b]);
+                indices.Add(indexer[c]);
             }
             else
             {
-                vertices.Add(c);
-                vertices.Add(b);
-                vertices.Add(a);
+                indices.Add(indexer[c]);
+                indices.Add(indexer[b]);
+                indices.Add(indexer[a]);
             }
-                
-        }
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            indices.Add(i);
+
         }
 
         mesh.SetVertices(vertices);
