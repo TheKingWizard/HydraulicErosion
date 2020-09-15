@@ -7,9 +7,9 @@ public class TerrainCompute : Terrain
 {
     public ComputeShader erosion;
 
-    public TerrainCompute(ComputeShader eroder)
+    public TerrainCompute()
     {
-        erosion = eroder;
+        erosion = (ComputeShader)Resources.Load("Compute/Erosion");
     }
 
     struct ErosionRegionCompute

@@ -94,10 +94,8 @@ public class ErosionRegion
 
         HashSet<ErosionRegion> GetNodesWithinRadius()
         {
-            HashSet<ErosionRegion> seenNodes = new HashSet<ErosionRegion>();
-            seenNodes.Add(this);
-            List<ErosionRegion> nodesToVisit = new List<ErosionRegion>();
-            nodesToVisit.Add(this);
+            HashSet<ErosionRegion> seenNodes = new HashSet<ErosionRegion>{ this };
+            List<ErosionRegion> nodesToVisit = new List<ErosionRegion>{ this };
 
             for (int i = 0; i < erosionRadius; i++)
             {

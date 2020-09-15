@@ -12,7 +12,7 @@ public class Viewer : MonoBehaviour
     Vector3 dragOrigin;
     bool dragging = false;
     private readonly float dragSpeed = 0.05f;
-    private readonly float moveSpeed = 0.01f;
+    private readonly float moveSpeed = 0.001f;
     private readonly float scrollSpeed = 0.1f;
 
     void Update()

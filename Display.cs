@@ -3,15 +3,13 @@ using UnityEngine;
 
 public class Display : MonoBehaviour
 {
-    public ComputeShader terrainEroder;
-
     TerrainCompute terrain;
     public Mesh mesh;
     public Material terrainMaterial;
 
     void Start()
     {
-        terrain = new TerrainCompute(terrainEroder);
+        terrain = new TerrainCompute();
     }
 
     void Update()
@@ -41,9 +39,8 @@ public class Display : MonoBehaviour
         List<int> indices = new List<int>();
         int index = 0;
         Dictionary<Vector3, int> indexer = new Dictionary<Vector3, int>();
-        Dictionary<Vector3, HashSet<float>> test = new Dictionary<Vector3, HashSet<float>>();
+
         List<Color> colors = new List<Color>();
-        List<Vector3> normals = new List<Vector3>();
         foreach (Triangle triangle in Terrain.triangles)
         {
             Vector3 a = new Vector3(triangle.A.X, triangle.A.Y, -terrain.erosionRegions[triangle.A].Elevation);
