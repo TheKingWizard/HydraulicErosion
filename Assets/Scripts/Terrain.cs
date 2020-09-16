@@ -142,6 +142,8 @@ public class Terrain
     {
         GenerateHexagon();
 
+        if (numIterations == 0) return;
+
         ErosionRegion[] values = erosionRegions.Values.ToArray();
         Parallel.For(0, numIterations, new ParallelOptions { MaxDegreeOfParallelism = 32 }, (i) =>
         {

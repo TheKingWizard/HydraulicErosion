@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement />
+    <ui:VisualElement name="menu" style="flex-grow: 0; flex-direction: column; flex-basis: auto; justify-content: flex-end; align-items: auto;">
+        <ui:SliderInt picking-mode="Ignore" label="Number of Raindrops" value="10000" high-value="100000" show-input-field="true" name="numDrops" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Erosion Radius" value="0" high-value="3" show-input-field="true" name="erosionRadius" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Lifetime" value="50" high-value="500" show-input-field="true" name="lifetime" style="flex-direction: column;" />
+        <ui:Slider picking-mode="Ignore" label="Gravity" value="1" high-value="10" show-input-field="true" name="gravity" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Inertia" value="50" high-value="100" show-input-field="true" name="inertia" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Evaporation" value="5" high-value="100" show-input-field="true" name="evaporation" style="flex-direction: column;" />
+        <ui:Slider picking-mode="Ignore" label="Capacity" value="1" high-value="10" show-input-field="true" name="capacity" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Erosion" value="30" high-value="100" show-input-field="true" name="erosion" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Deposition" value="1" high-value="100" show-input-field="true" name="deposition" style="flex-direction: column;" />
+        <ui:SliderInt picking-mode="Ignore" label="Minimum Erosion" value="1" high-value="100" show-input-field="true" name="minErosion" style="flex-direction: column;" />
+        <ui:Toggle label="Use GPU" value="true" name="useGPU" />
+        <ui:Button text="Simulate Erosion" display-tooltip-when-elided="True" name="simulate" />
+    </ui:VisualElement>
+</ui:UXML>

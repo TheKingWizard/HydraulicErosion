@@ -65,7 +65,7 @@ public class UI : MonoBehaviour
             capacity = root.Q<Slider>("capacity").value,
             erosion = root.Q<SliderInt>("erosion").value / 100f,
             deposition = root.Q<SliderInt>("deposition").value / 100f,
-            minErosion = root.Q<SliderInt>("minErosion").value / 100f
+            minErosion = root.Q<SliderInt>("minErosion").value / 1000f
         };
     }
 }

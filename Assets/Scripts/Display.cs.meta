@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 31c2d7c424039654e8a2f8b3f2815def
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - terrainMesh: {instanceID: 0}
+  - riverMesh: {instanceID: 0}
+  - terrainMaterial: {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
+  - riverMaterial: {instanceID: 0}
+  - lineMat: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

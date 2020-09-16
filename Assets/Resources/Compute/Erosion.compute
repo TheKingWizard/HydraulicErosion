@@ -1,4 +1,4 @@
-﻿#pragma kernel CSMain
+#pragma kernel CSMain
 
 int lifetime;
 float inertia;
@@ -13,7 +13,7 @@ struct Region
 {
     float3 position;
     float elevation;
-    
+
     int numAdjRegions;
     int adjacentRegions[6];
 };
@@ -22,7 +22,7 @@ StructuredBuffer<int> random;
 RWStructuredBuffer<Region> regions;
 
 float3 GetGradient(Region region) {
-    
+
     float totalHeightDiff = 0;
     for (int i = 0; i < region.numAdjRegions; i++)
     {
@@ -46,7 +46,7 @@ float3 GetGradient(Region region) {
 }
 
 int FindNextLocation(int regionIndex, float3 newDirection) {
-    
+
     Region region = regions[regionIndex];
     int newRegionIndex = regionIndex;
     float maxCosTheta = -1;
@@ -64,8 +64,8 @@ int FindNextLocation(int regionIndex, float3 newDirection) {
     return newRegionIndex;
 }
 
-[numthreads(1024,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+[numthreads(1024, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
 {
     int regionIndex = random[id.x];
     float3 direction = -GetGradient(regions[regionIndex]);

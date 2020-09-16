@@ -32,6 +32,8 @@ public class TerrainCompute : Terrain
     {
         GenerateHexagon();
 
+        if (numIterations == 0) return;
+
         int numThreads = System.Math.Max(numIterations / 1024, 1);
         ErosionRegion[] values = erosionRegions.Values.ToArray();
         Dictionary<ErosionRegion, int> regionMap = new Dictionary<ErosionRegion, int>();
