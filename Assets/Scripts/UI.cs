@@ -20,6 +20,17 @@ public class UI : MonoBehaviour
 
         var button = root.Q<Button>("simulate");
         button.RegisterCallback<ClickEvent>(evt => Simulate());
+
+        Viewer viewer = GameObject.Find("Main Camera").GetComponent<Viewer>();
+
+        var menu = root.Q<VisualElement>("menu");
+        menu.RegisterCallback<MouseEnterEvent>(evt => viewer.Enable(false));
+        menu.RegisterCallback<MouseLeaveEvent>(evt => viewer.Enable(true));
+    }
+
+    private void Start()
+    {
+        display.Simulate(0, false);
     }
 
     private void Simulate()

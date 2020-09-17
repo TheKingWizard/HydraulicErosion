@@ -7,7 +7,7 @@ public class Display : MonoBehaviour
     public Mesh mesh;
     public Material terrainMaterial;
 
-    void Start()
+    void Awake()
     {
         terrain = new TerrainCompute();
     }

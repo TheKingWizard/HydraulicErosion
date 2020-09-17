@@ -15,41 +15,51 @@ public class Viewer : MonoBehaviour
     private readonly float moveSpeed = 0.001f;
     private readonly float scrollSpeed = 0.1f;
 
+    private bool movementEnabled = true;
+
+    public void Enable(bool enabled)
+    {
+        this.movementEnabled = enabled;
+    }
+
     void Update()
     {
         if (Input.GetKey(KeyCode.Escape))
             Application.Quit();
-        if(Input.GetMouseButtonDown(0))
-            dragOrigin = Input.mousePosition;
-        if (Input.GetMouseButton(0))
+        if (movementEnabled)
         {
-            dragging = true;
-        }
-        else
-        {
-            dragging = false;
-        }
-        if (dragging)
-        {
-            Vector3 delta = Input.mousePosition - dragOrigin;
-            theta -= delta.x * dragSpeed;
-            phi += delta.y * dragSpeed;
-            dragOrigin = Input.mousePosition;
-        }
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
-        {
-            x += (Input.GetKey(KeyCode.LeftArrow)) ? -moveSpeed : moveSpeed;
+            if (Input.GetMouseButtonDown(0))
+                dragOrigin = Input.mousePosition;
+            if (Input.GetMouseButton(0))
+            {
+                dragging = true;
+            }
+            else
+            {
+                dragging = false;
+            }
+            if (dragging)
+            {
+                Vector3 delta = Input.mousePosition - dragOrigin;
+                theta -= delta.x * dragSpeed;
+                phi += delta.y * dragSpeed;
+                dragOrigin = Input.mousePosition;
+            }
+            if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
+            {
+                x += (Input.GetKey(KeyCode.LeftArrow)) ? -moveSpeed : moveSpeed;
 
-        }
-        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow))
-        {
-            y -= (Input.GetKey(KeyCode.UpArrow)) ? -moveSpeed : moveSpeed;
+            }
+            if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow))
+            {
+                y -= (Input.GetKey(KeyCode.UpArrow)) ? -moveSpeed : moveSpeed;
 
 
-        }
-        if (Input.mouseScrollDelta.y != 0.0f)
-        {
-            r -= Input.mouseScrollDelta.y * scrollSpeed;
+            }
+            if (Input.mouseScrollDelta.y != 0.0f)
+            {
+                r -= Input.mouseScrollDelta.y * scrollSpeed;
+            }
         }
         SetCameraLocation();
     }
